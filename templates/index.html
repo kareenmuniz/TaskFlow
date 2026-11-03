@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Minhas tarefas · TaskFlow{% endblock %}
+{% block content %}
+<section class="hero">
+  <div><p class="eyebrow">PAINEL DE CONTROLE</p><h1>Minhas tarefas</h1>
+  <p class="muted">Organize suas atividades e acompanhe seu progresso.</p></div>
+  <a class="button" href="{{ url_for('create_task') }}">＋ Adicionar tarefa</a>
+</section>
+<section class="stats">
+  <div class="stat"><span>Total pendentes</span><strong>{{ counts['Pendente'] }}</strong></div>
+  <div class="stat"><span>Concluídas</span><strong>{{ counts['Concluída'] }}</strong></div>
+  <div class="stat"><span>Total geral</span><strong>{{ counts['Pendente'] + counts['Concluída'] }}</strong></div>
+</section>
+<div class="toolbar">
+  <h2>Lista de tarefas</h2>
+  <form method="get" action="{{ url_for('index') }}">
+    <select name="status" aria-label="Filtrar por status" onchange="this.form.submit()">
+      <option value="" {% if not current_status %}selected{% endif %}>Todos os status</option>
+      <option value="Pendente" {% if current_status == 'Pendente' %}selected{% endif %}>Pendentes</option>
+      <option value="Concluída" {% if current_status == 'Concluída' %}selected{% endif %}>Concluídas</option>
+    </select>
+  </form>
+</div>
+{% if tasks %}
+<div class="task-list">
+  {% for task in tasks %}
+  <article class="task-card">
+    <div class="task-main">
+      <div class="task-title-line">
+        <h3 class="{% if task.status == 'Concluída' %}done{% endif %}">{{ task.title }}</h3>
+        <span class="priority priority-{{ task.priority|lower|replace('é','e') }}">{{ task.priority }}</span>
+      </div>
+      {% if task.description %}<p>{{ task.description }}</p>{% endif %}
+      <div class="meta"><span>{{ task.status }}</span><span>Prazo: {{ task.due_date or 'Não definido' }}</span></div>
+    </div>
+    <div class="actions">
+      <form method="post" action="{{ url_for('toggle_task', task_id=task.id) }}"><button class="small-button" type="submit">{{ 'Reabrir' if task.status == 'Concluída' else 'Concluir' }}</button></form>
+      <a class="small-button" href="{{ url_for('edit_task', task_id=task.id) }}">Editar</a>
+      <form method="post" action="{{ url_for('delete_task', task_id=task.id) }}" onsubmit="return confirm('Deseja realmente excluir esta tarefa?')"><button class="small-button danger" type="submit">Excluir</button></form>
+    </div>
+  </article>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty"><div class="empty-icon">☷</div><h3>Nenhuma tarefa encontrada</h3><p>Adicione uma tarefa para começar a organizar sua rotina.</p><a class="button" href="{{ url_for('create_task') }}">Criar primeira tarefa</a></div>
+{% endif %}
+{% endblock %}
